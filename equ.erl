@@ -20,11 +20,9 @@ add_backend(Host, Port) ->
 init(Num, InPort) ->
   ?SERVER ! {initialize, self(), {Num, InPort}},
   receive {reply, Reply} -> Reply end.
-%  initialize(Num, InPort),
-%  message_loop([]).
 
 initialize(Num, InPort) ->
-  case gen_tcp:listen(InPort, [binary, {packet, 0}, {active, once}]) of
+  case gen_tcp:listen(InPort, [binary, {packet, 0}, {active, true}]) of
     {ok, Listen} ->
       start_acceptors(Num, Listen),
       ok;
@@ -33,15 +31,10 @@ initialize(Num, InPort) ->
       error
   end.
 
-left(List, Times) ->
-  left(List, Times, []).
-
-left([], Times, Acc) when Times > 0 ->
-  left(lists:reverse(Acc), Times, []);
-left(List, 0, Acc) ->
-  List ++ lists:reverse(Acc);
-left([H|T], Times, Acc) ->
-  left(T, Times-1, [H|Acc]).
+right_rotate([H|T]) ->
+  lists:append(T, [H]);
+right_rotate([]) ->
+  [].
 
 message_loop(Data) ->
   receive
@@ -57,7 +50,7 @@ message_loop(Data) ->
     {get_backend, From} ->
       [Backend|_] = Data,
       From ! {reply, Backend},
-      NewData = left(Data, 1),
+      NewData = right_rotate(Data),
       message_loop(NewData);
     {add_backend, From, Backend} ->
       NewData = [Backend|Data],
