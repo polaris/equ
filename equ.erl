@@ -72,17 +72,10 @@ backend() ->
   receive {reply, Backend} -> Backend end.
 
 acceptor(Listen) ->
-  {OutHost, OutPort} = backend(),
   case gen_tcp:accept(Listen) of
     {ok, Client} ->
       spawn(fun() -> acceptor(Listen) end),
-      case gen_tcp:connect(OutHost, OutPort, [binary, {packet, 0}, {active, once}]) of
-        {ok, Server} ->
-          proxy_loop(Client, Server);
-        {error, _} ->
-          io:format("connect failed: posix error~n"),
-          error
-      end;
+      init_proxy(Client);
     {error, closed} ->
       io:format("accept failed: socket closed~n"),
       error;
@@ -91,6 +84,16 @@ acceptor(Listen) ->
       error;
     {error, _} ->
       io:format("accept failed: posix error~n"),
+      error
+  end.
+
+init_proxy(Client) ->
+  {OutHost, OutPort} = backend(),
+  case gen_tcp:connect(OutHost, OutPort, [binary, {packet, 0}, {active, once}]) of
+    {ok, Server} ->
+      proxy_loop(Client, Server);
+    {error, _} ->
+      io:format("connect failed: posix error~n"),
       error
   end.
 
