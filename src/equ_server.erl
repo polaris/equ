@@ -1,11 +1,11 @@
--module(equ).
+-module(equ_server).
 -export([start/0, init/2, add_backend/2, stop/0]).
 -export([message_loop/1]).
 
--define(SERVER, equ).
+-define(SERVER, equ_server).
 
 start() ->
-  Pid = spawn(equ, message_loop, [[]]),
+  Pid = spawn(equ_server, message_loop, [[]]),
   erlang:register(?SERVER, Pid),
   ok.
   
