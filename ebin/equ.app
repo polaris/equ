@@ -4,7 +4,8 @@
    {vsn, "0.1.0"},
    {modules, [equ_app, 
               equ_sup,
-              equ_server]},
+              equ_server,
+              proxy]},
   {registered, [equ_sup]},
   {applications, [kernel, stdlib]},
   {mod, {equ_app, []}}
