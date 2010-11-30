@@ -5,6 +5,7 @@
    {modules, [equ_app, 
               equ_sup,
               equ_server,
+              backend_server,
               proxy]},
   {registered, [equ_sup]},
   {applications, [kernel, stdlib]},
