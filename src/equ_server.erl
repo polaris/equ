@@ -1,5 +1,7 @@
 -module(equ_server).
 
+-include("records.hrl").
+
 -behaviour(gen_server).
 
 -define(SERVER, ?MODULE).
@@ -25,7 +27,7 @@ init([InPort, NumAcceptors]) ->
   end.
 
 backend() ->
-  {'127.0.0.1', 80}.
+  #backend{ address='127.0.0.1', port=80 }.
 
 start_acceptors(0, _) ->
   ok;

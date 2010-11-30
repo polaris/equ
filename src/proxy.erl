@@ -1,5 +1,7 @@
 -module(proxy).
 
+-include("records.hrl").
+
 -export([listen/2]).
 
 listen(Listen, Backend) ->
@@ -20,7 +22,7 @@ listen(Listen, Backend) ->
   end.
 
 init_proxy(Client, Backend) ->
-  {OutHost, OutPort} = Backend(),
+  #backend{address=OutHost, port=OutPort} = Backend(),
   Options = [binary, {packet, raw}, {active, once}, {nodelay, true}],
   case gen_tcp:connect(OutHost, OutPort, Options) of
     {ok, Server} ->
