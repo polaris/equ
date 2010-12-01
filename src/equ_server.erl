@@ -6,7 +6,7 @@
 
 -define(SERVER, ?MODULE).
 
--export([start/2, stop/0, backend/0]).
+-export([start/2, stop/0]).
 
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
@@ -17,6 +17,8 @@ stop() ->
   gen_server:cast(?MODULE, stop).
 
 init([InPort, NumAcceptors]) ->
+  backend_server:add('www.google.de', 80),
+  backend_server:add('www.yahoo.de', 80),
   Options = [binary, {packet, raw}, {active, true}, {reuseaddr, true}],
   case gen_tcp:listen(InPort, Options) of
     {ok, Listen} ->
@@ -26,13 +28,10 @@ init([InPort, NumAcceptors]) ->
       {stop, Reason}
   end.
 
-backend() ->
-  #backend{ address='127.0.0.1', port=80 }.
-
 start_acceptors(0, _) ->
   ok;
 start_acceptors(NumAcceptors, Listen) ->
-  spawn(proxy, listen, [Listen, fun equ_server:backend/0]),
+  spawn(proxy, listen, [Listen]),
   start_acceptors(NumAcceptors-1, Listen).
 
 handle_call(_Request, _From, State) ->

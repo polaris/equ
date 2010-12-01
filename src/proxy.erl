@@ -2,17 +2,17 @@
 
 -include("records.hrl").
 
--export([listen/2]).
+-export([listen/1]).
 
-listen(Listen, Backend) ->
+listen(Listen) ->
   case gen_tcp:accept(Listen) of
     {ok, Client} ->
-      Pid = spawn(fun() -> init_proxy(Client, Backend) end),
+      io:format("accepted~n"),
+      Pid = spawn(fun() -> init_proxy(Client) end),
       gen_tcp:controlling_process(Client, Pid),
-      listen(Listen, Backend);
+      listen(Listen);
     {error, closed} ->
-      io:format("accept failed: socket closed~n"),
-      error;
+      ok;
     {error, timeout} ->
       io:format("accept failed: timeout~n"),
       error;
@@ -21,8 +21,8 @@ listen(Listen, Backend) ->
       error
   end.
 
-init_proxy(Client, Backend) ->
-  #backend{address=OutHost, port=OutPort} = Backend(),
+init_proxy(Client) ->
+  #backend{address=OutHost, port=OutPort} = backend_server:get(),
   Options = [binary, {packet, raw}, {active, once}, {nodelay, true}],
   case gen_tcp:connect(OutHost, OutPort, Options) of
     {ok, Server} ->
