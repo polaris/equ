@@ -7,7 +7,6 @@
 listen(Listen) ->
   case gen_tcp:accept(Listen) of
     {ok, Client} ->
-      io:format("accepted~n"),
       Pid = spawn(fun() -> init_proxy(Client) end),
       gen_tcp:controlling_process(Client, Pid),
       listen(Listen);
