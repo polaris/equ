@@ -7,6 +7,7 @@
               equ_server,
               backend_server,
               proxy]},
+  {env, [{backend_servers, [{"192.168.2.140", 81}, {"192.168.2.140", 80}]}]},
   {registered, [equ_sup]},
   {applications, [kernel, stdlib]},
   {mod, {equ_app, []}}

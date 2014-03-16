@@ -17,22 +17,32 @@ stop() ->
   gen_server:cast(?MODULE, stop).
 
 init([InPort, NumAcceptors]) ->
-  backend_server:add('www.google.de', 80),
-  backend_server:add('www.yahoo.de', 80),
+  configure_backend(),
   Options = [binary, {packet, raw}, {active, true}, {reuseaddr, true}],
   case gen_tcp:listen(InPort, Options) of
     {ok, Listen} ->
-      start_acceptors(NumAcceptors, Listen),
+      start_proxies(NumAcceptors, Listen),
       {ok, Listen};
     {error, Reason} ->
       {stop, Reason}
   end.
 
-start_acceptors(0, _) ->
+configure_backend() ->
+  case application:get_env(backend_servers) of
+    {ok, List} -> add_backend_server(List);
+    _ -> ok
+  end.
+
+add_backend_server([]) -> ok;
+add_backend_server([H|T]) ->
+  backend_server:add(element(1, H), element(2, H)),
+  add_backend_server(T).
+
+start_proxies(0, _) ->
   ok;
-start_acceptors(NumAcceptors, Listen) ->
+start_proxies(NumAcceptors, Listen) ->
   spawn(proxy, listen, [Listen]),
-  start_acceptors(NumAcceptors-1, Listen).
+  start_proxies(NumAcceptors-1, Listen).
 
 handle_call(_Request, _From, State) ->
   Reply = 123,

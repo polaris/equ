@@ -2,6 +2,8 @@
 
 -include("records.hrl").
 
+-behaviour(gen_server).
+
 -define(SERVER, ?MODULE).
 
 -export([start/0, stop/0, add/2, get/0]).
