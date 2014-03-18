@@ -41,7 +41,7 @@ add_backend_server([H|T]) ->
 start_proxies(0, _) ->
   ok;
 start_proxies(NumAcceptors, Listen) ->
-  spawn(proxy, listen, [Listen]),
+  proxy:start(Listen),
   start_proxies(NumAcceptors-1, Listen).
 
 handle_call(_Request, _From, State) ->
