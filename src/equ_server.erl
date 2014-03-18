@@ -21,7 +21,7 @@ init([InPort, NumAcceptors]) ->
   Options = [binary, {packet, raw}, {active, true}, {reuseaddr, true}],
   case gen_tcp:listen(InPort, Options) of
     {ok, Listen} ->
-      start_proxies(NumAcceptors, Listen),
+      start_acceptors(NumAcceptors, Listen),
       {ok, Listen};
     {error, Reason} ->
       {stop, Reason}
@@ -38,11 +38,11 @@ add_backend_server([H|T]) ->
   backend_server:add(element(1, H), element(2, H)),
   add_backend_server(T).
 
-start_proxies(0, _) ->
+start_acceptors(0, _) ->
   ok;
-start_proxies(NumAcceptors, Listen) ->
-  proxy:start(Listen),
-  start_proxies(NumAcceptors-1, Listen).
+start_acceptors(NumAcceptors, Listen) ->
+  acceptor:start(Listen),
+  start_acceptors(NumAcceptors-1, Listen).
 
 handle_call(_Request, _From, State) ->
   Reply = 123,

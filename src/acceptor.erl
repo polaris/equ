@@ -1,4 +1,4 @@
--module(proxy).
+-module(acceptor).
 
 -include("records.hrl").
 
