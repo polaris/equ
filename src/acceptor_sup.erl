@@ -2,26 +2,21 @@
 
 -behaviour(supervisor).
 
--export([start_link/2]).
+-export([start_link/0,
+         start_child/1]).
 
 -export([init/1]).
 
 -define(SERVER, ?MODULE).
 
-start_link(NumAcceptors, ListenSocket) ->
-  supervisor:start_link({local, ?SERVER}, ?MODULE, [NumAcceptors, ListenSocket]).
+start_link() ->
+  supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
-init([NumAcceptors, ListenSocket]) ->
-  Children = get_acceptor_configs(NumAcceptors, ListenSocket),
-  RestartStrategy = {one_for_one, 0, 1},
+start_child(ListenSocket) ->
+  supervisor:start_child(?SERVER, [ListenSocket]).
+
+init([]) ->
+  Element = {acceptor_server, {acceptor_server, start_link, []}, permanent, brutal_kill, worker, [acceptor_server]},
+  Children = [Element],
+  RestartStrategy = {simple_one_for_one, 0, 1},
   {ok, {RestartStrategy, Children}}.
-
-get_acceptor_configs(NumAcceptors, Listen) ->
-  get_acceptor_configs(NumAcceptors, Listen, []).
-
-get_acceptor_configs(0, _Listen, Acc) ->
-  Acc;
-get_acceptor_configs(NumAcceptors, Listen, Acc) ->
-  Name = list_to_atom("pid" ++ integer_to_list(NumAcceptors)),
-  Acceptor = {Name, {acceptor, start, [Name, Listen]}, permanent, 2000, worker, [acceptor]},
-  get_acceptor_configs(NumAcceptors-1, Listen, [Acceptor | Acc]).

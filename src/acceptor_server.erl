@@ -1,18 +1,20 @@
--module(acceptor).
+-module(acceptor_server).
 
 -include("records.hrl").
 
 -behaviour(gen_server).
 
--export([start/2]).
+-export([start_link/1,
+         create/1]).
 
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          code_change/3, terminate/2]).
 
--define(SERVER, ?MODULE).
+start_link(ListenSocket) ->
+  gen_server:start_link(?MODULE, [ListenSocket], []).
 
-start(Name, ListenSocket) ->
-  gen_server:start_link({local, Name}, ?MODULE, [ListenSocket], []).
+create(ListenSocket) ->
+  acceptor_sup:start_child(ListenSocket).
 
 init([ListenSocket]) ->
   gen_server:cast(self(), accept),

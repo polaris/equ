@@ -17,11 +17,12 @@ stop() ->
   gen_server:cast(?MODULE, stop).
 
 init([InPort, NumAcceptors]) ->
+  acceptor_sup:start_link(),
   configure_backend(),
   Options = [binary, {packet, raw}, {active, true}, {reuseaddr, true}],
   case gen_tcp:listen(InPort, Options) of
     {ok, Listen} ->
-      acceptor_sup:start_link(NumAcceptors, Listen),
+      start_acceptors(NumAcceptors, Listen),
       {ok, Listen};
     {error, Reason} ->
       {stop, Reason}
@@ -38,9 +39,15 @@ add_backend_server([H|T]) ->
   backend_server:add(element(1, H), element(2, H)),
   add_backend_server(T).
 
+start_acceptors(NumAcceptors, _Listen) when NumAcceptors =< 0 ->
+  ok;
+start_acceptors(NumAcceptors, Listen) ->
+  acceptor_sup:start_child(Listen),
+  start_acceptors(NumAcceptors-1, Listen).
+
+
 handle_call(_Request, _From, State) ->
-  Reply = 123,
-  {reply, Reply, State}.
+  {noreply, State}.
 
 handle_cast(stop, State) ->
   gen_tcp:close(State),
