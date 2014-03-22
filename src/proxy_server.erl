@@ -19,8 +19,13 @@ start_link(ClientSocket, Backend) ->
 
 start(ClientSocket, Backend) ->
   Result = proxy_sup:start_child(ClientSocket, Backend),
-  gen_tcp:controlling_process(ClientSocket, element(2, Result)),
-  Result.
+  case Result of
+    {ok, Pid} ->
+      gen_tcp:controlling_process(ClientSocket, Pid),
+      Result;
+    _ ->
+      Result
+  end.
 
 init([ClientSocket, Backend]) ->
   gen_server:cast(self(), connect),
