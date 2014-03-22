@@ -18,6 +18,7 @@ stop() ->
 
 init([InPort, NumAcceptors]) ->
   acceptor_sup:start_link(),
+  proxy_sup:start_link(),
   configure_backend(),
   Options = [binary, {packet, raw}, {active, true}, {reuseaddr, true}],
   case gen_tcp:listen(InPort, Options) of
@@ -42,7 +43,7 @@ add_backend_server([H|T]) ->
 start_acceptors(NumAcceptors, _Listen) when NumAcceptors =< 0 ->
   ok;
 start_acceptors(NumAcceptors, Listen) ->
-  acceptor_sup:start_child(Listen),
+  acceptor_server:start(Listen),
   start_acceptors(NumAcceptors-1, Listen).
 
 

@@ -9,7 +9,7 @@
 
 -define(SERVER, ?MODULE).
 -define(DEFAULT_PORT, 2307).
--define(NUM_ACCEPTORS, 16).
+-define(NUM_ACCEPTORS, 4).
 
 start_link(Port, NumAcceptors) ->
   supervisor:start_link({local, ?SERVER}, ?MODULE, [Port, NumAcceptors]).

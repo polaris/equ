@@ -5,7 +5,7 @@
 -behaviour(gen_server).
 
 -export([start_link/1,
-         create/1]).
+         start/1]).
 
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          code_change/3, terminate/2]).
@@ -13,7 +13,7 @@
 start_link(ListenSocket) ->
   gen_server:start_link(?MODULE, [ListenSocket], []).
 
-create(ListenSocket) ->
+start(ListenSocket) ->
   acceptor_sup:start_child(ListenSocket).
 
 init([ListenSocket]) ->
@@ -28,8 +28,9 @@ handle_cast(stop, State) ->
 handle_cast(accept, ListenSocket) ->
   case gen_tcp:accept(ListenSocket) of
     {ok, Client} ->
-      Pid = spawn(fun() -> proxy:start(Client) end),
-      gen_tcp:controlling_process(Client, Pid),
+      io:format("Client connection accepted ~n", []),
+      Backend = backend_server:get(),
+      proxy_server:start(Client, Backend),
       gen_server:cast(self(), accept),
       {noreply, ListenSocket};
     {error, closed} ->
