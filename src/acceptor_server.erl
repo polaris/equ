@@ -28,7 +28,6 @@ handle_cast(stop, State) ->
 handle_cast(accept, ListenSocket) ->
   case gen_tcp:accept(ListenSocket) of
     {ok, Client} ->
-      io:format("Client connection accepted ~n", []),
       Backend = backend_server:get(),
       proxy_server:start(Client, Backend),
       gen_server:cast(self(), accept),

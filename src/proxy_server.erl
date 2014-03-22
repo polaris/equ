@@ -36,7 +36,7 @@ handle_cast(connect, {ClientSocket, Backend}) ->
     {error, _} ->
       io:format("connect failed: posix error~n"),
       {stop, error, {ClientSocket, nosocket}}
-  end;
+  end.
 
 handle_info({tcp, ClientSocket, Data}, {ClientSocket, ServerSocket}) ->
   gen_tcp:send(ServerSocket, Data),
