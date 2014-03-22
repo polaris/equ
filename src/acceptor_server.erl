@@ -1,14 +1,18 @@
 -module(acceptor_server).
 
--include("records.hrl").
-
 -behaviour(gen_server).
 
 -export([start_link/1,
          start/1]).
 
--export([init/1, handle_call/3, handle_cast/2, handle_info/2,
-         code_change/3, terminate/2]).
+-export([init/1,
+         handle_call/3,
+         handle_cast/2,
+         handle_info/2,
+         code_change/3,
+         terminate/2]).
+
+-include("records.hrl").
 
 start_link(ListenSocket) ->
   gen_server:start_link(?MODULE, [ListenSocket], []).
@@ -27,18 +31,15 @@ handle_cast(stop, State) ->
   {stop, normal, State};
 handle_cast(accept, ListenSocket) ->
   case gen_tcp:accept(ListenSocket) of
-    {ok, Client} ->
-      Backend = backend_server:get(),
-      proxy_server:start(Client, Backend),
+    {ok, ClientSocket} ->
+      proxy_server:start(ClientSocket, backend_server:get()),
       gen_server:cast(self(), accept),
       {noreply, ListenSocket};
     {error, closed} ->
       {stop, normal, ListenSocket};
     {error, timeout} ->
-      io:format("accept failed: timeout~n"),
       {stop, error, ListenSocket};
     {error, _} ->
-      io:format("accept failed: posix error~n"),
       {stop, error, ListenSocket}
   end.
 

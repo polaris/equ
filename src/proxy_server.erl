@@ -1,14 +1,18 @@
 -module(proxy_server).
 
--include("records.hrl").
-
 -behaviour(gen_server).
 
 -export([start_link/2, 
          start/2]).
 
--export([init/1, handle_call/3, handle_cast/2, handle_info/2,
-         code_change/3, terminate/2]).
+-export([init/1,
+         handle_call/3,
+         handle_cast/2,
+         handle_info/2,
+         code_change/3,
+         terminate/2]).
+
+-include("records.hrl").
 
 start_link(ClientSocket, Backend) ->
   gen_server:start_link(?MODULE, [ClientSocket, Backend], []).

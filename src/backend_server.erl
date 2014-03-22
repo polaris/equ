@@ -1,16 +1,24 @@
 -module(backend_server).
 
--include("records.hrl").
-
 -behaviour(gen_server).
+
+-export([start_link/0,
+         stop/0,
+         add/2,
+         get/0]).
+
+-export([init/1,
+         handle_call/3,
+         handle_cast/2,
+         handle_info/2,
+         terminate/2,
+         code_change/3]).
 
 -define(SERVER, ?MODULE).
 
--export([start/0, stop/0, add/2, get/0]).
+-include("records.hrl").
 
--export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
-
-start() ->
+start_link() ->
   gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 stop() ->
