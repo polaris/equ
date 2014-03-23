@@ -32,7 +32,13 @@ handle_cast(stop, State) ->
 handle_cast(accept, ListenSocket) ->
   case gen_tcp:accept(ListenSocket) of
     {ok, ClientSocket} ->
-      proxy_server:start(ClientSocket, backend_server:get()),
+      case backend_server:get() of
+        {ok, Backend} ->
+          proxy_server:start(ClientSocket, Backend);
+        {error, Reason} ->
+          io:format("Failed to get backend: ~p~n", [Reason]),
+          gen_tcp:close(ClientSocket)
+      end,
       gen_server:cast(self(), accept),
       {noreply, ListenSocket};
     {error, closed} ->

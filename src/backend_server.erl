@@ -39,10 +39,10 @@ right_rotate([]) ->
   [].
 
 handle_call(get, _From, []) ->
-  {reply, error, []};
+  {reply, {error, empty}, []};
 handle_call(get, _From, [H|T]) ->
   NewState = right_rotate([H|T]),
-  {reply, H, NewState}.
+  {reply, {ok, H}, NewState}.
 
 handle_cast(stop, State) ->
   {stop, normal, State};
