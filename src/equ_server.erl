@@ -24,8 +24,6 @@ stop() ->
 
 init([Port, NumAcceptors]) ->
   configure_backend(),
-  acceptor_sup:start_link(),
-  proxy_sup:start_link(),
   Options = [binary, {packet, raw}, {active, true}, {reuseaddr, true}],
   case gen_tcp:listen(Port, Options) of
     {ok, ListenSocket} ->
