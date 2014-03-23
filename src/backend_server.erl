@@ -25,8 +25,20 @@ stop() ->
   gen_server:cast(?MODULE, stop).
 
 init([]) ->
+  configure_backend(),
   {ok, []}.
   
+configure_backend() ->
+  case application:get_env(backend_servers) of
+    {ok, List} -> add_backend_server(List);
+    _ -> ok
+  end.
+
+add_backend_server([]) -> ok;
+add_backend_server([H|T]) ->
+  add(element(1, H), element(2, H)),
+  add_backend_server(T).
+
 add(Address, Port) ->
   gen_server:cast(?MODULE, {add, Address, Port}).
 

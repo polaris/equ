@@ -23,7 +23,6 @@ stop() ->
   gen_server:cast(?MODULE, stop).
 
 init([Port, NumAcceptors]) ->
-  configure_backend(),
   Options = [binary, {packet, raw}, {active, true}, {reuseaddr, true}],
   case gen_tcp:listen(Port, Options) of
     {ok, ListenSocket} ->
@@ -32,17 +31,6 @@ init([Port, NumAcceptors]) ->
     {error, Reason} ->
       {stop, Reason}
   end.
-
-configure_backend() ->
-  case application:get_env(backend_servers) of
-    {ok, List} -> add_backend_server(List);
-    _ -> ok
-  end.
-
-add_backend_server([]) -> ok;
-add_backend_server([H|T]) ->
-  backend_server:add(element(1, H), element(2, H)),
-  add_backend_server(T).
 
 start_acceptors(NumAcceptors, _ListenSocket) when NumAcceptors =< 0 ->
   ok;
