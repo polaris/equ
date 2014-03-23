@@ -12,6 +12,8 @@
          code_change/3,
          terminate/2]).
 
+-record(proxy_state, {backend=undefined, client_socket=undefined, server_socket=undefined}).
+
 -include("records.hrl").
 
 start_link(ClientSocket, Backend) ->
@@ -29,32 +31,32 @@ start(ClientSocket, Backend) ->
 
 init([ClientSocket, Backend]) ->
   gen_server:cast(self(), connect),
-  {ok, {ClientSocket, Backend}}.
+  {ok, #proxy_state{client_socket=ClientSocket, backend=Backend}}.
 
 handle_call(_E, _From, State) ->
   {noreply, State}.
 
 handle_cast(stop, State) ->
   {stop, normal, State};
-handle_cast(connect, {ClientSocket, Backend}) ->
+handle_cast(connect, #proxy_state{client_socket=ClientSocket, backend=Backend} = State) ->
   #backend{address=OutHost, port=OutPort} = Backend,
   Options = [binary, {packet, raw}, {active, once}, {nodelay, true}],
   case gen_tcp:connect(OutHost, OutPort, Options) of
     {ok, ServerSocket} ->
-      {noreply, {ClientSocket, ServerSocket}};
+      {noreply, #proxy_state{client_socket=ClientSocket, server_socket=ServerSocket}};
     {error, _} ->
       io:format("connect failed: posix error~n"),
-      {stop, error, {ClientSocket, nosocket}}
+      {stop, error, State}
   end.
 
-handle_info({tcp, ClientSocket, Data}, {ClientSocket, ServerSocket}) ->
+handle_info({tcp, ClientSocket, Data}, #proxy_state{client_socket=ClientSocket, server_socket=ServerSocket} = State) ->
   gen_tcp:send(ServerSocket, Data),
   inet:setopts(ClientSocket, [{active, once}]),
-  {noreply, {ClientSocket, ServerSocket}};
-handle_info({tcp, ServerSocket, Data}, {ClientSocket, ServerSocket}) ->
+  {noreply, State};
+handle_info({tcp, ServerSocket, Data}, #proxy_state{client_socket=ClientSocket, server_socket=ServerSocket} = State) ->
   gen_tcp:send(ClientSocket, Data),
   inet:setopts(ServerSocket, [{active, once}]),
-  {noreply, {ClientSocket, ServerSocket}};
+  {noreply, State};
 handle_info(_Info, State) ->
   io:format("handle_info: ~p~n", [_Info]),
   {noreply, State}.
