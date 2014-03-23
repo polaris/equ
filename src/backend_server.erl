@@ -5,6 +5,7 @@
 -export([start_link/0,
          stop/0,
          add/2,
+         remove/2,
          get/0]).
 
 -export([init/1,
@@ -42,6 +43,9 @@ add_backend_server([H|T]) ->
 add(Address, Port) ->
   gen_server:cast(?MODULE, {add, Address, Port}).
 
+remove(Address, Port) ->
+  gen_server:cast(?MODULE, {remove, Address, Port}).
+
 get() ->
   gen_server:call(?MODULE, get).
 
@@ -60,6 +64,9 @@ handle_cast(stop, State) ->
   {stop, normal, State};
 handle_cast({add, Address, Port}, State) ->
   NewState = [#backend{address=Address, port=Port}|State],  
+  {noreply, NewState};
+handle_cast({remove, Address, Port}, State) ->
+  NewState = lists:delete(#backend{address=Address, port=Port}, State),
   {noreply, NewState}.
     
 handle_info(_Info, State) ->
