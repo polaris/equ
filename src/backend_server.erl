@@ -63,10 +63,14 @@ handle_call(get, _From, [H|T]) ->
 handle_cast(stop, State) ->
   {stop, normal, State};
 handle_cast({add, Address, Port}, State) ->
-  NewState = [#backend{address=Address, port=Port}|State],  
+  Backend = #backend{address=Address, port=Port},
+  NewState = [Backend|State], 
+  backend_event:add(Backend), 
   {noreply, NewState};
 handle_cast({remove, Address, Port}, State) ->
-  NewState = lists:delete(#backend{address=Address, port=Port}, State),
+  Backend = #backend{address=Address, port=Port},
+  NewState = lists:delete(Backend, State),
+  backend_event:remove(Backend),
   {noreply, NewState}.
     
 handle_info(_Info, State) ->
