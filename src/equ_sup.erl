@@ -20,8 +20,8 @@ start_link() ->
   start_link(?DEFAULT_PORT, ?NUM_ACCEPTORS).
 
 init([Port, NumAcceptors]) ->
-  AcceptorSupervisor = {acceptor_sup, {acceptor_sup, start_link, []}, permanent, 2000, worker, [acceptor_sup]},
-  ProxySupervisor = {proxy_sup, {proxy_sup, start_link, []}, permanent, 2000, worker, [proxy_sup]},
+  AcceptorSupervisor = {acceptor_sup, {acceptor_sup, start_link, []}, permanent, 2000, supervisor, [acceptor_sup]},
+  ProxySupervisor = {proxy_sup, {proxy_sup, start_link, []}, permanent, 2000, supervisor, [proxy_sup]},
   BackendServer = {backend_server, {backend_server, start_link, []}, permanent, 2000, worker, [backend_server]},
   EquServer = {equ_server, {equ_server, start_link, [Port, NumAcceptors]}, permanent, 2000, worker, [equ_server]},
   Children = [AcceptorSupervisor, ProxySupervisor, BackendServer, EquServer],
