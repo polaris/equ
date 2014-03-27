@@ -1,10 +1,10 @@
--module(backend_event).
+-module(equ_event).
 
 -export([start_link/0,
          add_handler/2,
          delete_handler/2,
-         add/1,
-         remove/1]).
+         add_backend/1,
+         remove_backend/1]).
 
 -define(SERVER, ?MODULE).
 
@@ -19,8 +19,8 @@ add_handler(Handler, Args) ->
 delete_handler(Handler, Args) ->
   gen_event:delete_handler(?SERVER, Handler, Args).
 
-add(Backend) ->
-  gen_event:notify(?SERVER, {add, Backend}).
+add_backend(Backend) ->
+  gen_event:notify(?SERVER, {add_backend, Backend}).
 
-remove(Backend) ->
-  gen_event:notify(?SERVER, {remove, Backend}).
+remove_backend(Backend) ->
+  gen_event:notify(?SERVER, {remove_backend, Backend}).

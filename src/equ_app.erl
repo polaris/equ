@@ -7,6 +7,8 @@
 start(_Type, _StartArgs) ->
   case equ_sup:start_link() of
     {ok, Pid} ->
+      event_logger:add_handler(),
+      backend_server:read_configure(),
       {ok, Pid};
     Other ->
       {error, Other}
