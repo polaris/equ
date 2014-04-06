@@ -2,8 +2,8 @@
 
 -behaviour(gen_server).
 
--export([start_link/2,
-         start_link/3]).
+-export([start_link/1,
+         start_link/2]).
 
 -export([init/1,
          handle_call/3,
@@ -18,15 +18,29 @@
 
 -include("records.hrl").
 
-start_link(ClientSocket, Backend) ->
-  start_link(ClientSocket, Backend, ?DEFAULT_TIMEOUT).
+start_link(ClientSocket) ->
+  start_link(ClientSocket, ?DEFAULT_TIMEOUT).
 
-start_link(ClientSocket, Backend, Timeout) ->
-  gen_server:start_link(?MODULE, [ClientSocket, Backend, Timeout], []).
+start_link(ClientSocket, Timeout) ->
+  gen_server:start_link(?MODULE, [ClientSocket, Timeout], []).
 
-init([ClientSocket, Backend, Timeout]) ->
-  gen_server:cast(self(), connect),
-  {ok, #proxy_state{client_socket=ClientSocket, backend=Backend, timeout=Timeout}}.
+init([ClientSocket, Timeout]) ->
+  case inet:peername(ClientSocket) of
+    {ok, {Address, Port}} ->
+      io:format("~p:~p~n", [Address, Port]),
+      case backend_server:get() of
+        {ok, Backend} ->
+          gen_server:cast(self(), connect),
+          {ok, #proxy_state{client_socket=ClientSocket, backend=Backend, timeout=Timeout}};
+        {error, Reason} ->
+          io:format("Failed to get backend: ~p~n", [Reason]),
+          gen_tcp:close(ClientSocket),
+          {stop, ignore}
+      end;
+    {error, Reason} ->
+      io:format("Failed to resolve remote address and port: ~p~n", [Reason]),
+      {stop, ignore}
+  end.
 
 handle_call(_E, _From, State) ->
   {noreply, State}.
@@ -58,7 +72,7 @@ handle_info(timeout, State) ->
   gen_tcp:close(ServerSocket),
   {stop, normal, State};
 handle_info(_Info, State) ->
-  io:format("handle_info: ~p~n", [_Info]),
+  io:format("proxy_server:handle_info: ~p~n", [_Info]),
   {noreply, State}.
 
 code_change(_OldVsn, State, _Extra) ->

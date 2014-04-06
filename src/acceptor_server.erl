@@ -44,22 +44,11 @@ handle_cast(accept, ListenSocket) ->
   end.
 
 handle_accept(ClientSocket) ->
-  case inet:peername(ClientSocket) of
-    {ok, {Address, Port}} ->
-      io:format("~p:~p~n", [Address, Port]),
-      case backend_server:get() of
-        {ok, Backend} ->
-          {ok, Pid} = proxy_server:start_link(ClientSocket, Backend),
-          gen_tcp:controlling_process(ClientSocket, Pid);
-        {error, Reason} ->
-          io:format("Failed to get backend: ~p~n", [Reason]),
-          gen_tcp:close(ClientSocket)
-      end;
-    {error, Reason} ->
-      io:format("Failed to resolve remote address and port: ~p~n", [Reason])
-  end.
+  {ok, Pid} = proxy_server:start_link(ClientSocket),
+  gen_tcp:controlling_process(ClientSocket, Pid).
 
 handle_info(_Info, State) ->
+  io:format("acceptor_server:handle_info: ~p~n", [_Info]),
   {noreply, State}.
 
 code_change(_OldVsn, State, _Extra) ->

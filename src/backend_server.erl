@@ -16,6 +16,8 @@
          terminate/2,
          code_change/3]).
 
+-record(backend_state, {backend_list=[]}).
+
 -define(SERVER, ?MODULE).
 
 -include("records.hrl").
@@ -27,7 +29,7 @@ stop() ->
   gen_server:cast(?MODULE, stop).
 
 init([]) ->
-  {ok, []}.
+  {ok, #backend_state{}}.
 
 read_configure() ->
   gen_server:cast(?MODULE, read_configure).
@@ -46,27 +48,28 @@ right_rotate([H|T]) ->
 right_rotate([]) ->
   [].
 
-handle_call(get, _From, []) ->
-  {reply, {error, empty}, []};
-handle_call(get, _From, [H|T]) ->
-  NewState = right_rotate([H|T]),
-  {reply, {ok, H}, NewState}.
+handle_call(get, _From, #backend_state{backend_list=[]} = State) ->
+  {reply, {error, empty}, State};
+handle_call(get, _From, #backend_state{backend_list=List} = State) ->
+  Backend = hd(List),
+  NewList = right_rotate(List),
+  {reply, {ok, Backend}, State#backend_state{backend_list=NewList}}.
 
 handle_cast(stop, State) ->
   {stop, normal, State};
 handle_cast(read_configure, State) ->
   configure_backend(),  
   {noreply, State};
-handle_cast({add, Address, Port}, State) ->
+handle_cast({add, Address, Port}, #backend_state{backend_list=List} = State) ->
   Backend = #backend{address=Address, port=Port},
-  NewState = [Backend|State], 
+  NewList = [Backend|List], 
   equ_event:add_backend(Backend), 
-  {noreply, NewState};
-handle_cast({remove, Address, Port}, State) ->
+  {noreply, State#backend_state{backend_list=NewList}};
+handle_cast({remove, Address, Port}, #backend_state{backend_list=List} = State) ->
   Backend = #backend{address=Address, port=Port},
-  NewState = lists:delete(Backend, State),
+  NewList = lists:delete(Backend, List),
   equ_event:remove_backend(Backend),
-  {noreply, NewState}.
+  {noreply, State#backend_state{backend_list=NewList}}.
 
 configure_backend() ->
   case application:get_env(backend_servers) of
