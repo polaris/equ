@@ -32,13 +32,7 @@ handle_cast(stop, State) ->
 handle_cast(accept, ListenSocket) ->
   case gen_tcp:accept(ListenSocket) of
     {ok, ClientSocket} ->
-      case backend_server:get() of
-        {ok, Backend} ->
-          proxy_server:start(ClientSocket, Backend);
-        {error, Reason} ->
-          io:format("Failed to get backend: ~p~n", [Reason]),
-          gen_tcp:close(ClientSocket)
-      end,
+      handle_accept(ClientSocket),
       gen_server:cast(self(), accept),
       {noreply, ListenSocket};
     {error, closed} ->
@@ -47,6 +41,22 @@ handle_cast(accept, ListenSocket) ->
       {stop, error, ListenSocket};
     {error, _} ->
       {stop, error, ListenSocket}
+  end.
+
+handle_accept(ClientSocket) ->
+  case inet:peername(ClientSocket) of
+    {ok, {Address, Port}} ->
+      io:format("~p:~p~n", [Address, Port]),
+      case backend_server:get() of
+        {ok, Backend} ->
+          {ok, Pid} = proxy_server:start_link(ClientSocket, Backend),
+          gen_tcp:controlling_process(ClientSocket, Pid);
+        {error, Reason} ->
+          io:format("Failed to get backend: ~p~n", [Reason]),
+          gen_tcp:close(ClientSocket)
+      end;
+    {error, Reason} ->
+      io:format("Failed to resolve remote address and port: ~p~n", [Reason])
   end.
 
 handle_info(_Info, State) ->
