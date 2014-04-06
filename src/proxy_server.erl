@@ -2,7 +2,8 @@
 
 -behaviour(gen_server).
 
--export([start_link/2]).
+-export([start_link/2,
+         start_link/3]).
 
 -export([init/1,
          handle_call/3,
@@ -18,11 +19,14 @@
 -include("records.hrl").
 
 start_link(ClientSocket, Backend) ->
-  gen_server:start_link(?MODULE, [ClientSocket, Backend], []).
+  start_link(ClientSocket, Backend, ?DEFAULT_TIMEOUT).
 
-init([ClientSocket, Backend]) ->
+start_link(ClientSocket, Backend, Timeout) ->
+  gen_server:start_link(?MODULE, [ClientSocket, Backend, Timeout], []).
+
+init([ClientSocket, Backend, Timeout]) ->
   gen_server:cast(self(), connect),
-  {ok, #proxy_state{client_socket=ClientSocket, backend=Backend, timeout=?DEFAULT_TIMEOUT}}.
+  {ok, #proxy_state{client_socket=ClientSocket, backend=Backend, timeout=Timeout}}.
 
 handle_call(_E, _From, State) ->
   {noreply, State}.
