@@ -4,7 +4,6 @@
 
 -export([start_link/0,
          stop/0,
-         read_configure/0,
          add/2,
          remove/2,
          get/0]).
@@ -57,9 +56,6 @@ handle_call(get, _From, #backend_state{backend_list=List} = State) ->
 
 handle_cast(stop, State) ->
   {stop, normal, State};
-handle_cast(read_configure, State) ->
-  configure_backend(),  
-  {noreply, State};
 handle_cast({add, Address, Port}, #backend_state{backend_list=List} = State) ->
   Backend = #backend{address=Address, port=Port},
   NewList = [Backend|List], 
@@ -70,17 +66,6 @@ handle_cast({remove, Address, Port}, #backend_state{backend_list=List} = State) 
   NewList = lists:delete(Backend, List),
   equ_event:remove_backend(Backend),
   {noreply, State#backend_state{backend_list=NewList}}.
-
-configure_backend() ->
-  case application:get_env(backend_servers) of
-    {ok, List} -> add_backend_server(List);
-    _ -> ok
-  end.
-
-add_backend_server([]) -> ok;
-add_backend_server([H|T]) ->
-  add(element(1, H), element(2, H)),
-  add_backend_server(T).
 
 handle_info(_Info, State) ->
   {noreply, State}.
