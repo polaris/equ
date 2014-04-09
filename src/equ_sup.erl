@@ -12,8 +12,8 @@ start_link() ->
   supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
 init([]) ->
-  AcceptorSupervisor = {acceptor_sup, {acceptor_sup, start_link, []}, permanent, 2000, supervisor, [acceptor_sup]},
   EventManager = {equ_event, {equ_event, start_link, []}, permanent, 2000, worker, [equ_event]},
+  AcceptorSupervisor = {acceptor_sup, {acceptor_sup, start_link, []}, permanent, 2000, supervisor, [acceptor_sup]},
   BackendServer = {backend_server, {backend_server, start_link, []}, permanent, 2000, worker, [backend_server]},
   Children = [EventManager, AcceptorSupervisor, BackendServer],
   RestartStrategy = {one_for_one, 0, 1},
