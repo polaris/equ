@@ -2,13 +2,14 @@
 
 -export([start/0, stop/0]).
 
+-define(DEFAULT_CONFIG, 'equ.config').
 -define(DEFAULT_PORT, 2307).
-
 -define(NUM_ACCEPTORS, 4).
 
 start() ->
   case application:start(?MODULE) of
     ok -> 
+      event_logger:add_handler(),
       init_config(),
       listen(?DEFAULT_PORT, ?NUM_ACCEPTORS);
     {error, Reason} -> 
@@ -19,12 +20,29 @@ stop() ->
   application:stop(?MODULE).
 
 init_config() ->
-  event_logger:add_handler(),
-  configure_backend().
+  ParamsList = read_config(),
+  Config = parse_config(ParamsList),
+  configure_backend(Config).
 
-configure_backend() ->
-  case application:get_env(?MODULE, backend_servers) of
-    {ok, List} ->
+read_config() ->
+  case file:consult(?DEFAULT_CONFIG) of
+    {ok, Config} ->
+      hd(Config);
+    _ ->
+      []
+  end.
+
+parse_config(ParamsList) ->
+  parse_config(ParamsList, dict:new()).
+
+parse_config([], Dict) ->
+  Dict;
+parse_config([H|T], Dict) ->
+  parse_config(T, dict:append(element(1, H), element(2, H), Dict)).
+
+configure_backend(Config) ->
+  case dict:find(backend_servers, Config) of
+    {ok, [List]} ->
       add_backend_server(List);
     _ ->
       ok
