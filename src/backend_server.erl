@@ -30,9 +30,6 @@ stop() ->
 init([]) ->
   {ok, #backend_state{}}.
 
-read_configure() ->
-  gen_server:cast(?MODULE, read_configure).
-  
 add(Address, Port) ->
   gen_server:cast(?MODULE, {add, Address, Port}).
 
