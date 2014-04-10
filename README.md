@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/polaris/equ.svg)](https://travis-ci.org/polaris/equ)
+
 equ
 ===
 
