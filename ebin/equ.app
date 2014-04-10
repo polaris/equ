@@ -5,12 +5,14 @@
    {modules, [equ,
               equ_app, 
               equ_sup,
+              equ_event,
+              event_logger,
               backend_server,
               acceptor_sup,
               acceptor_server,
               proxy_server]},
   {env, []},
-  {registered, [equ, equ_sup]},
+  {registered, [equ]},
   {applications, [kernel, stdlib]},
   {mod, {equ_app, []}}
 ]}.
