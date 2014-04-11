@@ -34,18 +34,18 @@ A configuration for a load balancer in front of two web servers could look like 
 Controlling
 -----------
 
-Start equ with
+Start equ
 
     equ:start().
 
-Stop equ with
+Stop equ
 
     equ:stop().
 
-Add backend servers at runtime with
+Add backend servers at runtime to equ
 
     backend_server:add('1.0.0.3', 80).
 
-Remove backend servers with
+Remove backend servers at runtime from equ
 
     backend_server:remove('1.0.0.3', 80).
