@@ -22,7 +22,7 @@ Configuration
 equ tries to read equ.config when it starts.
 
 Parameter | Description | Default
---- | ---
+--- | --- | ---
 backend_servers | A list of backend server addresses and ports. | []
 port | The port on which the load balancer listens for connections. | 2307
 num_acceptors | The number of processes accepting incoming connections. | 4
