@@ -5,6 +5,7 @@
    {modules, [equ,
               equ_app, 
               equ_sup,
+              equ_config,
               equ_event,
               event_logger,
               backend_server,

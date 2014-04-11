@@ -10,8 +10,11 @@ start() ->
   case application:start(?MODULE) of
     ok -> 
       event_logger:add_handler(),
-      init_config(),
-      listen(?DEFAULT_PORT, ?NUM_ACCEPTORS);
+      Config = equ_config:new(?DEFAULT_CONFIG),
+      configure_backend(Config),
+      Port = equ_config:get_value(port, Config, ?DEFAULT_PORT),
+      NumAcceptors = equ_config:get_value(num_acceptors, Config, ?NUM_ACCEPTORS),
+      listen(Port, NumAcceptors);
     {error, Reason} -> 
       io:format("Failed to start equ: ~p~n", [Reason])
   end.
@@ -19,34 +22,9 @@ start() ->
 stop() ->
   application:stop(?MODULE).
 
-init_config() ->
-  ParamsList = read_config(),
-  Config = parse_config(ParamsList),
-  configure_backend(Config).
-
-read_config() ->
-  case file:consult(?DEFAULT_CONFIG) of
-    {ok, Config} ->
-      hd(Config);
-    _ ->
-      []
-  end.
-
-parse_config(ParamsList) ->
-  parse_config(ParamsList, dict:new()).
-
-parse_config([], Dict) ->
-  Dict;
-parse_config([H|T], Dict) ->
-  parse_config(T, dict:append(element(1, H), element(2, H), Dict)).
-
 configure_backend(Config) ->
-  case dict:find(backend_servers, Config) of
-    {ok, [List]} ->
-      add_backend_server(List);
-    _ ->
-      ok
-  end.
+  List = equ_config:get_value(backend_servers, Config, []),
+  add_backend_server(List).
 
 add_backend_server([]) ->
   ok;
