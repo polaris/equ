@@ -2,8 +2,7 @@
 
 -behaviour(gen_server).
 
--export([start_link/1,
-         start_link/2]).
+-export([start_link/2]).
 
 -export([init/1,
          handle_call/3,
@@ -14,12 +13,7 @@
 
 -record(proxy_state, {backend=undefined, client_socket=undefined, server_socket=undefined, timeout=infinity}).
 
--define(DEFAULT_TIMEOUT, 60000).
-
 -include("records.hrl").
-
-start_link(ClientSocket) ->
-  start_link(ClientSocket, ?DEFAULT_TIMEOUT).
 
 start_link(ClientSocket, Timeout) ->
   gen_server:start_link(?MODULE, [ClientSocket, Timeout], []).

@@ -1,20 +1,28 @@
 -module(equ).
 
--export([start/0, stop/0]).
+-export([start/0,
+         start/1,
+         stop/0]).
 
--define(DEFAULT_CONFIG, 'equ.config').
--define(DEFAULT_PORT, 2307).
--define(NUM_ACCEPTORS, 4).
+-include("global.hrl").
 
 start() ->
+  start(?DEFAULT_CONFIG).
+
+start(ConfigFile) ->
   case application:start(?MODULE) of
     ok -> 
       event_logger:add_handler(),
-      Config = equ_config:new(?DEFAULT_CONFIG),
+      
+      Config = equ_config:new(ConfigFile),
+      
       configure_backend(Config),
+      
       Port = equ_config:get_value(port, Config, ?DEFAULT_PORT),
-      NumAcceptors = equ_config:get_value(num_acceptors, Config, ?NUM_ACCEPTORS),
-      start(Port, NumAcceptors);
+      NumAcceptors = equ_config:get_value(num_acceptors, Config, ?DEFAULT_NUM_ACCEPTORS),
+      Timeout = equ_config:get_value(proxy_timeout, Config, ?DEFAULT_PROXY_TIMEOUT),
+      
+      start(Port, NumAcceptors, Timeout);
     {error, Reason} -> 
       io:format("Failed to start equ: ~p~n", [Reason])
   end.
@@ -32,9 +40,9 @@ add_backend_server([H|T]) ->
   backend_server:add(element(1, H), element(2, H)),
   add_backend_server(T).
 
-start(Port, NumAcceptors) ->
+start(Port, NumAcceptors, Timeout) ->
   SpawnFun = fun(ClientSocket) ->
-    proxy_server:start_link(ClientSocket)
+    proxy_server:start_link(ClientSocket, Timeout)
   end,
   case equ_listener:listen(Port) of
     {ok, ListenSocket} ->
