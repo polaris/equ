@@ -3,7 +3,7 @@
 -behaviour(supervisor).
 
 -export([start_link/0,
-         start_child/1]).
+         start_child/2]).
 
 -export([init/1]).
 
@@ -12,8 +12,8 @@
 start_link() ->
   supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
-start_child(ListenSocket) ->
-  supervisor:start_child(?SERVER, [ListenSocket]).
+start_child(ListenSocket, Fun) ->
+  supervisor:start_child(?SERVER, [ListenSocket, Fun]).
 
 init([]) ->
   Element = {acceptor_server, {acceptor_server, start_link, []}, transient, brutal_kill, worker, [acceptor_server]},

@@ -33,16 +33,18 @@ add_backend_server([H|T]) ->
   add_backend_server(T).
 
 start(Port, NumAcceptors) ->
-  io:format("PORT > ~p~n", [Port]),
+  SpawnFun = fun(ClientSocket) ->
+    proxy_server:start_link(ClientSocket)
+  end,
   case equ_listener:listen(Port) of
     {ok, ListenSocket} ->
-      start_acceptors(NumAcceptors, ListenSocket);
+      start_acceptors(NumAcceptors, ListenSocket, SpawnFun);
     {error, Reason} ->
       io:format("Failed to listen on port ~p: ~p~n", [Port, Reason])
   end.
 
-start_acceptors(NumAcceptors, _ListenSocket) when NumAcceptors =< 0 ->
+start_acceptors(NumAcceptors, _ListenSocket, _SpawnFun) when NumAcceptors =< 0 ->
   ok;
-start_acceptors(NumAcceptors, ListenSocket) ->
-  acceptor_server:start(ListenSocket),
-  start_acceptors(NumAcceptors-1, ListenSocket).
+start_acceptors(NumAcceptors, ListenSocket, SpawnFun) ->
+  acceptor_server:start(ListenSocket, SpawnFun),
+  start_acceptors(NumAcceptors-1, ListenSocket, SpawnFun).

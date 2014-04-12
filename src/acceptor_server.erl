@@ -2,8 +2,8 @@
 
 -behaviour(gen_server).
 
--export([start_link/1,
-         start/1]).
+-export([start_link/2,
+         start/2]).
 
 -export([init/1,
          handle_call/3,
@@ -12,39 +12,41 @@
          code_change/3,
          terminate/2]).
 
+-record(acceptor_state, {listen_socket, spawn_fun}).
+
 -include("records.hrl").
 
-start_link(ListenSocket) ->
-  gen_server:start_link(?MODULE, [ListenSocket], []).
+start_link(ListenSocket, SpawnFun) ->
+  gen_server:start_link(?MODULE, [ListenSocket, SpawnFun], []).
 
-start(ListenSocket) ->
-  acceptor_sup:start_child(ListenSocket).
+start(ListenSocket, SpawnFun) ->
+  acceptor_sup:start_child(ListenSocket, SpawnFun).
 
-init([ListenSocket]) ->
+init([ListenSocket, SpawnFun]) ->
   gen_server:cast(self(), accept),
-  {ok, ListenSocket}.
+  {ok, #acceptor_state{listen_socket = ListenSocket, spawn_fun = SpawnFun}}.
 
 handle_call(_E, _From, State) ->
   {noreply, State}.
 
 handle_cast(stop, State) ->
   {stop, normal, State};
-handle_cast(accept, ListenSocket) ->
+handle_cast(accept, #acceptor_state{listen_socket = ListenSocket, spawn_fun = SpawnFun} = State) ->
   case gen_tcp:accept(ListenSocket) of
     {ok, ClientSocket} ->
-      handle_accept(ClientSocket),
+      handle_accept(ClientSocket, SpawnFun),
       gen_server:cast(self(), accept),
-      {noreply, ListenSocket};
+      {noreply, State};
     {error, closed} ->
-      {stop, normal, ListenSocket};
+      {stop, normal, State};
     {error, timeout} ->
-      {stop, error, ListenSocket};
+      {stop, error, State};
     {error, _} ->
-      {stop, error, ListenSocket}
+      {stop, error, State}
   end.
 
-handle_accept(ClientSocket) ->
-  {ok, Pid} = proxy_server:start_link(ClientSocket),
+handle_accept(ClientSocket, SpawnFun) ->
+  {ok, Pid} = SpawnFun(ClientSocket),
   gen_tcp:controlling_process(ClientSocket, Pid).
 
 handle_info(_Info, State) ->
