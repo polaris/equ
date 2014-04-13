@@ -14,10 +14,17 @@ start(_Type, _StartArgs) ->
 stop(_State) ->
   ok.
 
+
 -ifdef(TEST).
 
-simple_test() ->
+start_test() ->
   ok = application:start(equ),
-  ?assertNot(undefined == whereis(equ_sup)).
+  ?assertNot(undefined == whereis(equ_sup)),
+  ok = application:stop(equ).
+
+stop_test() ->
+  ok = application:start(equ),
+  ok = application:stop(equ),
+  ?assert(undefined == whereis(equ_sup)).
 
 -endif.
