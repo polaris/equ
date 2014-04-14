@@ -22,7 +22,7 @@ init([ClientSocket, Timeout]) ->
   case inet:peername(ClientSocket) of
     {ok, {Address, Port}} ->
       io:format("~p:~p~n", [Address, Port]),
-      case backend_server:get() of
+      case backend_list:get() of
         {ok, Backend} ->
           gen_server:cast(self(), connect),
           {ok, #proxy_state{client_socket=ClientSocket, backend=Backend, timeout=Timeout}};

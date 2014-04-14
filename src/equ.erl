@@ -37,7 +37,7 @@ configure_backend(Config) ->
 add_backend_server([]) ->
   ok;
 add_backend_server([H|T]) ->
-  backend_server:add(element(1, H), element(2, H)),
+  backend_list:add(element(1, H), element(2, H)),
   add_backend_server(T).
 
 start(Port, NumAcceptors, Timeout) ->

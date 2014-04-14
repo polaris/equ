@@ -46,8 +46,8 @@ Stop equ
 
 Add backend servers at runtime to equ
 
-    backend_server:add('1.0.0.3', 80).
+    backend_list:add('1.0.0.3', 80).
 
 Remove backend servers at runtime from equ
 
-    backend_server:remove('1.0.0.3', 80).
+    backend_list:remove('1.0.0.3', 80).

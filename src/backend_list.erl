@@ -1,4 +1,4 @@
--module(backend_server).
+-module(backend_list).
 
 -behaviour(gen_server).
 
@@ -86,25 +86,25 @@ code_change(_OldVsn, State, _Extra) ->
 -ifdef(TEST).
 
 simple_add_test() ->
-  backend_server:start_link(),
-  backend_server:add('1.2.3.4', 1234),
-  ?assert(backend_server:count() == {ok, 1}),
-  {ok, #backend{address = Address, port = Port}} = backend_server:get(),
+  backend_list:start_link(),
+  backend_list:add('1.2.3.4', 1234),
+  ?assert(backend_list:count() == {ok, 1}),
+  {ok, #backend{address = Address, port = Port}} = backend_list:get(),
   ?assert(Address == '1.2.3.4'),
   ?assert(Port == 1234),
-  backend_server:stop().
+  backend_list:stop().
 
 count_test() ->
-  backend_server:start_link(),
-  ?assert(backend_server:count() == {ok, 0}),
-  backend_server:add('1.2.3.4', 1234),
-  ?assert(backend_server:count() == {ok, 1}),
-  backend_server:add('1.2.3.5', 1234),
-  ?assert(backend_server:count() == {ok, 2}),
-  backend_server:remove('1.2.3.4', 1234),
-  ?assert(backend_server:count() == {ok, 1}),
-  backend_server:remove('1.2.3.5', 1234),
-  ?assert(backend_server:count() == {ok, 0}),
-  backend_server:stop().
+  backend_list:start_link(),
+  ?assert(backend_list:count() == {ok, 0}),
+  backend_list:add('1.2.3.4', 1234),
+  ?assert(backend_list:count() == {ok, 1}),
+  backend_list:add('1.2.3.5', 1234),
+  ?assert(backend_list:count() == {ok, 2}),
+  backend_list:remove('1.2.3.4', 1234),
+  ?assert(backend_list:count() == {ok, 1}),
+  backend_list:remove('1.2.3.5', 1234),
+  ?assert(backend_list:count() == {ok, 0}),
+  backend_list:stop().
 
 -endif.
