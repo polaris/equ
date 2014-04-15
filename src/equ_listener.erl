@@ -30,7 +30,7 @@ init([]) ->
   {ok, #listener_state{}}.
 
 handle_call({listen, Port}, _From, #listener_state{listen_socket = OldListenSocket} = State) ->
-  close_socket(OldListenSocket),
+  equ_utilities:close_socket(OldListenSocket),
   Options = [binary, {packet, raw}, {active, true}, {reuseaddr, true}],
   case gen_tcp:listen(Port, Options) of
     {ok, ListenSocket} ->
@@ -39,7 +39,7 @@ handle_call({listen, Port}, _From, #listener_state{listen_socket = OldListenSock
       {reply, {error, Reason}, State#listener_state{listen_socket=undefined}}
   end;
 handle_call(hangup, _From, #listener_state{listen_socket = ListenSocket} = State) ->
-  close_socket(ListenSocket),
+  equ_utilities:close_socket(ListenSocket),
   {reply, ok, State#listener_state{listen_socket=undefined}};
 handle_call(_E, _From, State) ->
   {noreply, State}.
@@ -54,14 +54,5 @@ handle_info(_Info, State) ->
 code_change(_OldVsn, State, _Extra) ->
   {ok, State}.
 
-terminate(normal, #listener_state{listen_socket = ListenSocket}) ->
-  close_socket(ListenSocket),
-  ok;
-terminate(normal, _State) ->
-  ok.
-
-close_socket(undefined) ->
-  ok;
-close_socket(ListenSocket) ->
-  gen_tcp:close(ListenSocket),
-  ok.
+terminate(_Reason, #listener_state{listen_socket = ListenSocket}) ->
+  equ_utilities:close_socket(ListenSocket).

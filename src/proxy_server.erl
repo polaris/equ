@@ -70,11 +70,5 @@ code_change(_OldVsn, State, _Extra) ->
   {ok, State}.
 
 terminate(_Reason, #proxy_state{client_socket=ClientSocket, server_socket=ServerSocket}) ->
-  close_socket(ClientSocket),
-  close_socket(ServerSocket),
-  ok.
-
-close_socket(undefined) ->
-  ok;
-close_socket(Socket) ->
-  gen_tcp:close(Socket).
+  equ_utilities:close_socket(ClientSocket),
+  equ_utilities:close_socket(ServerSocket).
