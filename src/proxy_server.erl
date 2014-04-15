@@ -61,9 +61,6 @@ handle_info({tcp, ServerSocket, Data}, #proxy_state{client_socket=ClientSocket, 
   inet:setopts(ServerSocket, [{active, once}]),
   {noreply, State, Timeout};
 handle_info(timeout, State) ->
-  #proxy_state{client_socket=ClientSocket, server_socket=ServerSocket} = State,
-  gen_tcp:close(ClientSocket),
-  gen_tcp:close(ServerSocket),
   {stop, normal, State};
 handle_info(_Info, State) ->
   io:format("proxy_server:handle_info: ~p~n", [_Info]),
@@ -72,5 +69,12 @@ handle_info(_Info, State) ->
 code_change(_OldVsn, State, _Extra) ->
   {ok, State}.
 
-terminate(normal, _State) ->
+terminate(_Reason, #proxy_state{client_socket=ClientSocket, server_socket=ServerSocket}) ->
+  close_socket(ClientSocket),
+  close_socket(ServerSocket),
   ok.
+
+close_socket(undefined) ->
+  ok;
+close_socket(Socket) ->
+  gen_tcp:close(Socket).
