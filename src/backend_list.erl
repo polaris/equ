@@ -16,11 +16,9 @@
          terminate/2,
          code_change/3]).
 
--record(backend_state, {backend_list=[]}).
+-record(backend_state, {backend_list=[], backend_map=dict:new()}).
 
 -define(SERVER, ?MODULE).
-
--include("records.hrl").
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
@@ -64,14 +62,16 @@ right_rotate([]) ->
 
 handle_cast(stop, State) ->
   {stop, normal, State};
-handle_cast({add, Address, Port}, #backend_state{backend_list=List} = State) ->
-  Backend = #backend{address=Address, port=Port},
+handle_cast({add, Address, Port}, #backend_state{backend_list=List, backend_map=Dict} = State) ->
+  {ok, Backend} = backend_server:start_link(Address, Port),
   NewList = [Backend|List], 
-  {noreply, State#backend_state{backend_list=NewList}};
-handle_cast({remove, Address, Port}, #backend_state{backend_list=List} = State) ->
-  Backend = #backend{address=Address, port=Port},
+  NewDict = dict:append({Address, Port}, Backend, Dict),
+  {noreply, State#backend_state{backend_list=NewList, backend_map=NewDict}};
+handle_cast({remove, Address, Port}, #backend_state{backend_list=List, backend_map=Dict} = State) ->
+  Backend = dict:find({Address, Port}, Dict),
   NewList = lists:delete(Backend, List),
-  {noreply, State#backend_state{backend_list=NewList}}.
+  NewDict = dict:erase(Backend, Dict),
+  {noreply, State#backend_state{backend_list=NewList, backend_map=NewDict}}.
 
 handle_info(_Info, State) ->
   {noreply, State}.

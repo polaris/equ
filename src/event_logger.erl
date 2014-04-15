@@ -14,8 +14,6 @@
 
 -record(state, {}).
 
--include("records.hrl").
-
 add_handler() ->
   equ_event:add_handler(?MODULE, []).
 
@@ -25,11 +23,11 @@ delete_handler() ->
 init([]) ->
   {ok, #state{}}.
 
-handle_event({add_backend, #backend{address=OutHost, port=OutPort}}, State) ->
-  error_logger:info_msg("added backend: ~p:~p", [OutHost, OutPort]),
+handle_event({add_backend, Address, Port}, State) ->
+  error_logger:info_msg("added backend: ~p:~p", [Address, Port]),
   {ok, State};
-handle_event({remove_backend, #backend{address=OutHost, port=OutPort}}, State) ->
-  error_logger:info_msg("remove backend: ~p:~p", [OutHost, OutPort]),
+handle_event({remove_backend, Address, Port}, State) ->
+  error_logger:info_msg("remove backend: ~p:~p", [Address, Port]),
   {ok, State};
 handle_event(_Event, State) ->
   {ok, State}.

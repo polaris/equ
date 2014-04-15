@@ -14,8 +14,6 @@
 
 -record(acceptor_state, {listen_socket, spawn_fun}).
 
--include("records.hrl").
-
 start_link(ListenSocket, SpawnFun) ->
   gen_server:start_link(?MODULE, [ListenSocket, SpawnFun], []).
 

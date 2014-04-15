@@ -13,15 +13,13 @@
 
 -record(proxy_state, {backend=undefined, client_socket=undefined, server_socket=undefined, timeout=infinity}).
 
--include("records.hrl").
-
 start_link(ClientSocket, Timeout) ->
   gen_server:start_link(?MODULE, [ClientSocket, Timeout], []).
 
 init([ClientSocket, Timeout]) ->
   case inet:peername(ClientSocket) of
     {ok, {Address, Port}} ->
-      io:format("~p:~p~n", [Address, Port]),
+      io:format("Client ~p:~p connected.~n", [Address, Port]),
       case backend_list:get() of
         {ok, Backend} ->
           gen_server:cast(self(), connect),
@@ -42,13 +40,14 @@ handle_call(_E, _From, State) ->
 handle_cast(stop, State) ->
   {stop, normal, State};
 handle_cast(connect, #proxy_state{backend=Backend, timeout=Timeout} = State) ->
-  #backend{address=OutHost, port=OutPort} = Backend,
+  {ok, Address} = backend_server:get_address(Backend),
+  {ok, Port} = backend_server:get_port(Backend),
   Options = [binary, {packet, raw}, {active, once}, {nodelay, true}],
-  case gen_tcp:connect(OutHost, OutPort, Options) of
+  case gen_tcp:connect(Address, Port, Options) of
     {ok, ServerSocket} ->
       {noreply, State#proxy_state{server_socket=ServerSocket}, Timeout};
-    {error, _} ->
-      io:format("connect failed: posix error~n"),
+    {error, Reason} ->
+      io:format("connect failed: ~p~n", [Reason]),
       {stop, error, State}
   end.
 
