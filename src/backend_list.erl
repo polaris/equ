@@ -68,9 +68,9 @@ handle_cast({add, Address, Port}, #backend_state{backend_list=List, backend_map=
   NewDict = dict:append({Address, Port}, Backend, Dict),
   {noreply, State#backend_state{backend_list=NewList, backend_map=NewDict}};
 handle_cast({remove, Address, Port}, #backend_state{backend_list=List, backend_map=Dict} = State) ->
-  Backend = dict:find({Address, Port}, Dict),
+  {ok, [Backend]} = dict:find({Address, Port}, Dict),
   NewList = lists:delete(Backend, List),
-  NewDict = dict:erase(Backend, Dict),
+  NewDict = dict:erase({Address, Port}, Dict),
   {noreply, State#backend_state{backend_list=NewList, backend_map=NewDict}}.
 
 handle_info(_Info, State) ->
@@ -89,22 +89,22 @@ simple_add_test() ->
   backend_list:start_link(),
   backend_list:add('1.2.3.4', 1234),
   ?assert(backend_list:count() == {ok, 1}),
-  {ok, #backend{address = Address, port = Port}} = backend_list:get(),
-  ?assert(Address == '1.2.3.4'),
-  ?assert(Port == 1234),
+  {ok, Backend} = backend_list:get(),
+  ?assertEqual(backend_server:get_address(Backend), {ok, '1.2.3.4'}),
+  ?assertEqual(backend_server:get_port(Backend), {ok, 1234}),
   backend_list:stop().
 
 count_test() ->
   backend_list:start_link(),
-  ?assert(backend_list:count() == {ok, 0}),
+  ?assertEqual(backend_list:count(), {ok, 0}),
   backend_list:add('1.2.3.4', 1234),
-  ?assert(backend_list:count() == {ok, 1}),
+  ?assertEqual(backend_list:count(), {ok, 1}),
   backend_list:add('1.2.3.5', 1234),
-  ?assert(backend_list:count() == {ok, 2}),
+  ?assertEqual(backend_list:count(), {ok, 2}),
   backend_list:remove('1.2.3.4', 1234),
-  ?assert(backend_list:count() == {ok, 1}),
+  ?assertEqual({ok, 1}, backend_list:count()),
   backend_list:remove('1.2.3.5', 1234),
-  ?assert(backend_list:count() == {ok, 0}),
+  ?assertEqual({ok, 0}, backend_list:count()),
   backend_list:stop().
 
 -endif.
