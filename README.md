@@ -16,8 +16,8 @@ Run
 to compile equ.
 
 
-Configuration
--------------
+Configure
+---------
 
 equ tries to read equ.config when it starts.
 
