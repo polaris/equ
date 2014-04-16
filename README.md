@@ -6,8 +6,8 @@ equ is a load balancer written in Erlang.
 [![Build Status](https://travis-ci.org/polaris/equ.svg)](https://travis-ci.org/polaris/equ)
 
 
-Building
---------
+Build
+-----
 
 Run
 
@@ -33,8 +33,9 @@ A configuration for a load balancer in front of two web servers could look like 
      {port, 80},
      {num_acceptors, 4}].
 
-Controlling
------------
+
+Run
+---
 
 Start equ
 
