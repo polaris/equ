@@ -52,9 +52,7 @@ handle_call(get_address, _From, #backend_server_state{address = Address} = State
 handle_call(get_port, _From, #backend_server_state{port = Port} = State) ->
   {reply, {ok, Port}, State};
 handle_call(client_count, _From, #backend_server_state{count = Count} = State) ->
-  {reply, {ok, Count}, State};
-handle_call(_Message, _From, State) ->
-  {reply, {ok, foo}, State}.
+  {reply, {ok, Count}, State}.
 
 handle_cast(stop, State) ->
   {stop, normal, State};
