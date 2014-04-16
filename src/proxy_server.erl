@@ -45,6 +45,7 @@ handle_cast(connect, #proxy_state{backend=Backend, timeout=Timeout} = State) ->
   Options = [binary, {packet, raw}, {active, once}, {nodelay, true}],
   case gen_tcp:connect(Address, Port, Options) of
     {ok, ServerSocket} ->
+      backend_server:add_client(Backend),
       {noreply, State#proxy_state{server_socket=ServerSocket}, Timeout};
     {error, Reason} ->
       io:format("connect failed: ~p~n", [Reason]),
@@ -68,6 +69,7 @@ handle_info(_Info, State) ->
 code_change(_OldVsn, State, _Extra) ->
   {ok, State}.
 
-terminate(_Reason, #proxy_state{client_socket=ClientSocket, server_socket=ServerSocket}) ->
+terminate(_Reason, #proxy_state{backend=Backend, client_socket=ClientSocket, server_socket=ServerSocket}) ->
+  backend_server:remove_client(Backend),
   equ_utilities:close_socket(ClientSocket),
   equ_utilities:close_socket(ServerSocket).
