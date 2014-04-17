@@ -26,12 +26,14 @@ Parameter | Description | Default
 backend_servers | A list of backend server addresses and ports. | []
 port | The port on which the load balancer listens for connections. | 2307
 num_acceptors | The number of processes accepting incoming connections. | 4
+proxy_timeout | The time a proxy process stays alive without any client interaction. | 60000
 
 A configuration for a load balancer in front of two web servers could look like so
 
     [{backend_servers, [{"10.0.0.1", 80}, {"10.0.0.2", 80}]},
      {port, 80},
-     {num_acceptors, 4}].
+     {num_acceptors, 4},
+     {proxy_timeout, 60000}].
 
 
 Run
